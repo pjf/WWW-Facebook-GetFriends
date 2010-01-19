@@ -79,12 +79,7 @@ sub get_friends_json {
 
     my $agent = $this->agent;
 
-    use Data::Dumper;
-    print Dumper($agent);
-
     my $url = sprintf(FRIENDS_URL, $uid);
-
-    warn "DEBUG: $url\n";
 
     my $response = $agent->get( $url );
 
@@ -93,8 +88,6 @@ sub get_friends_json {
     }
 
     my $content = $response->content;
-
-    warn "Raw content is $content\n";
 
     $content =~ s/\Qfor (;;);\E//;
 

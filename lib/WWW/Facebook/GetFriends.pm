@@ -27,7 +27,7 @@ Retrieve friends of a person from Facebook by using AJAX/JSON calls.
 
     my $fb = WWW::Facebook::GetFriends->new();
 
-    $fb->get_friends(...);
+    my $friends = $fb->get_friends($uid);   # $uid must be numeric
 
 =head1 METHODS
 
@@ -55,6 +55,15 @@ sub _init {
 sub agent { return $_[0]->{agent} }
 sub json  { return $_[0]->{json}  }
 
+=head2 get_friends
+
+    my $friends = $fb->get_friends($uid);
+
+Gets a list of friends from Facebook, and returns them as a Perl
+data structure.
+
+=cut
+
 sub get_friends {
     my ($this, $uid) = @_;
 
@@ -66,6 +75,11 @@ sub get_friends {
 }
 
 =head2 get_friends
+
+    my $friends = $fb->get_friends_json($uid);
+
+Gets a list of friends from Facebook, and returns them as a JSON
+string.
 
 =cut
 

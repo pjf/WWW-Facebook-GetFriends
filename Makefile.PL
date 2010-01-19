@@ -6,7 +6,9 @@ author   'Paul Fenwick <pjf@cpan.org>';
 
 build_requires 'Test::More';
 
-auto_install;
+requires 'JSON::Any';
+requires 'LWP::UserAgent';
+requires 'Carp';
 
 WriteAll;
 

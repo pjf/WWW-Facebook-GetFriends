@@ -2,10 +2,14 @@ package WWW::Facebook::GetFriends;
 
 use warnings;
 use strict;
+use JSON::Any;
+use LWP::UserAgent;
+use Carp;
+use constant FRIENDS_URL => "http://www.facebook.com/ajax/typeahead_friends.php?u=%s&__a=1";
 
 =head1 NAME
 
-WWW::Facebook::GetFriends - The great new WWW::Facebook::GetFriends!
+WWW::Facebook::GetFriends - Get friends from Facebook via JSON
 
 =head1 VERSION
 
@@ -15,37 +19,75 @@ Version 0.01
 
 our $VERSION = '0.01';
 
-
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
+Retrieve friends of a person from Facebook by using AJAX/JSON calls.
 
     use WWW::Facebook::GetFriends;
 
-    my $foo = WWW::Facebook::GetFriends->new();
-    ...
+    my $fb = WWW::Facebook::GetFriends->new();
 
-=head1 EXPORT
+    $fb->get_friends(...);
 
-A list of functions that can be exported.  You can delete this section
-if you don't export anything, such as for a purely object-oriented module.
-
-=head1 FUNCTIONS
-
-=head2 function1
+=head1 METHODS
 
 =cut
 
-sub function1 {
+sub new {
+    my ($class, @args) = @_;
+
+    my $this = {};
+
+    bless($this,$class);
+
+    return $this->_init(@args);
 }
 
-=head2 function2
+sub _init {
+    my ($this) = @_;
+
+    $this->{agent} = LWP::UserAgent->new( agent => "Mozilla/5.0" );
+    $this->{json}  = JSON::Any->new;
+
+    return $this;
+}
+
+sub agent { return $_[0]->{agent} }
+sub json  { return $_[0]->{json}  }
+
+sub get_friends {
+    my ($this, $uid) = @_;
+
+    my $json = $this->get_friends_json($uid);
+
+    my $data = $this->json->jsonToObj( $json );
+
+    return $data;
+}
+
+=head2 get_friends
 
 =cut
 
-sub function2 {
+sub get_friends_json {
+    my ($this, $uid) = @_;
+
+    if ( $uid !~ /^\d+$/ ) {
+        if (not defined $uid) { $uid = "undef" }
+        croak "->get_friends() requires numeric profile ID (not $uid)";
+    }
+
+    my $agent = $this->agent;
+
+    my $response = $agent->get( sprintf(FRIENDS_URL, $uid) );
+
+    if ($response->is_success) {
+        my $content = $response->content;
+
+        $content =~ s/\Qfor (;;);\E//;
+
+        return $content;
+    }
 }
 
 =head1 AUTHOR
@@ -54,19 +96,17 @@ Paul Fenwick, C<< <pjf at cpan.org> >>
 
 =head1 BUGS
 
-Please report any bugs or feature requests to C<bug-www-facebook-getfriends at rt.cpan.org>, or through
-the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=WWW-Facebook-GetFriends>.  I will be notified, and then you'll
-automatically be notified of progress on your bug as I make changes.
-
-
-
+Please report any bugs or feature requests to C<bug-www-facebook-getfriends at
+rt.cpan.org>, or through the web interface at
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=WWW-Facebook-GetFriends>.  I
+will be notified, and then you'll automatically be notified of progress on your
+bug as I make changes.
 
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc WWW::Facebook::GetFriends
-
 
 You can also look for information at:
 
@@ -93,6 +133,9 @@ L<http://search.cpan.org/dist/WWW-Facebook-GetFriends>
 
 =head1 ACKNOWLEDGEMENTS
 
+@theharmonyguy for finding delicious buttery JSON calls.
+
+@selenamarie and @gnat for thinking of wrong things to do with Facebook.
 
 =head1 COPYRIGHT & LICENSE
 
@@ -101,7 +144,6 @@ Copyright 2010 Paul Fenwick, all rights reserved.
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
 =cut
 
-1; # End of WWW::Facebook::GetFriends
+1;

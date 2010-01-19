@@ -79,15 +79,26 @@ sub get_friends_json {
 
     my $agent = $this->agent;
 
-    my $response = $agent->get( sprintf(FRIENDS_URL, $uid) );
+    use Data::Dumper;
+    print Dumper($agent);
 
-    if ($response->is_success) {
-        my $content = $response->content;
+    my $url = sprintf(FRIENDS_URL, $uid);
 
-        $content =~ s/\Qfor (;;);\E//;
+    warn "DEBUG: $url\n";
 
-        return $content;
+    my $response = $agent->get( $url );
+
+    if (not $response->is_success) {
+        croak "WWW::Facebook::GetFriends failed: ".$response->status_line;
     }
+
+    my $content = $response->content;
+
+    warn "Raw content is $content\n";
+
+    $content =~ s/\Qfor (;;);\E//;
+
+    return $content;
 }
 
 =head1 AUTHOR
